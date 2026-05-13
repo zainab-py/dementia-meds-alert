@@ -1,4 +1,4 @@
-#Dementia Medication Alert System
+*Dementia Medication Alert System*
 A smart medication tracking and alert system designed to support dementia patients and caregivers by ensuring medicines are taken on time and safely.
 
 The system monitors medication schedules, sends reminders, detects missed doses or repeated medication attempts, and alerts caregivers when necessary. It is built to reduce confusion, improve consistency, and make daily care management easier.
