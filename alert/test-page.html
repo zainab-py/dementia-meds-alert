@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+        .btn-success { background: #10b981; }
+        .btn-warning { background: #f59e0b; }
+        .btn-danger { background: #dc2626; }
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: none;
+        }
+        .status.success { background: #d1fae5; color: #065f46; }
+        .status.warning { background: #fef3c7; color: #92400e; }
+        .status.error { background: #fee2e2; color: #991b1b; }
+        .notification-item {
+            background: #fef2f2;
+            border: 2px solid #fca5a5;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Medication Tracker Test Page</h1>
+        <p>This is a simplified test page to verify the notification system works.</p>
+        
+        <div id="status" class="status"></div>
+        
+        <div>
+            <button class="btn" onclick="testBasicFunction()">Test Basic Function</button>
+            <button class="btn btn-success" onclick="addTestMedication()">Add Test Medication</button>
+            <button class="btn btn-warning" onclick="createTestNotification()">Create Test Notification</button>
+            <button class="btn btn-danger" onclick="clearAll()">Clear All</button>
+        </div>
+        
+        <div id="medications-list">
+            <h3>📋 Medications:</h3>
+            <div id="medications-container">
+                <p style="color: #6b7280;">No medications added yet</p>
+            </div>
+        </div>
+        
+        <div id="notifications-list">
+            <h3>🔔 Notifications:</h3>
+            <div id="notifications-container">
+                <p style="color: #6b7280;">No notifications</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple test variables
+        let medications = [];
+        let notifications = [];
+
+        function showStatus(message, type = 'success') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = 'status ' + type;
+            statusEl.style.display = 'block';
+            
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 3000);
+        }
+
+        function testBasicFunction() {
+            console.log('Basic function test clicked');
+            showStatus('✅ Basic function is working!');
+        }
+
+        function addTestMedication() {
+            console.log('Add test medication clicked');
+            
+            const testMeds = [
+                { name: 'Aspirin', dosage: '100mg', frequency: 'daily' },
+                { name: 'Vitamin D', dosage: '1000 IU', frequency: 'daily' },
+                { name: 'Blood Pressure Med', dosage: '5mg', frequency: 'twice daily' }
+            ];
+            
+            const randomMed = testMeds[Math.floor(Math.random() * testMeds.length)];
+            const newMed = {
+                id: Date.now(),
+                name: randomMed.name,
+                dosage: randomMed.dosage,
+                frequency: randomMed.frequency,
+                lastTaken: null,
+                dateAdded: new Date().toISOString()
+            };
+            
+            medications.push(newMed);
+            updateMedicationDisplay();
+            showStatus('Added ' + newMed.name + ' to medications');
+        }
+
+        function createTestNotification() {
+            console.log('Create test notification clicked');
+            
+            if (medications.length === 0) {
+                showStatus('Please add a medication first', 'warning');
+                return;
+            }
+            
+            const randomMed = medications[Math.floor(Math.random() * medications.length)];
+            const notification = {
+                id: Date.now(),
+                type: 'medication_due',
+                title: 'Medication Due',
+                message: randomMed.name + ' (' + randomMed.dosage + ') is due now!',
+                medicationId: randomMed.id,
+                timestamp: new Date(),
+                isRead: false,
+                isDismissed: false,
+                priority: 'high'
+            };
+            
+            notifications.push(notification);
+            updateNotificationDisplay();
+            showStatus('Created notification for ' + randomMed.name);
+            
+            // Test browser notification if available
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(notification.title, {
+                    body: notification.message,
+                    icon: '💊'
+                });
+            }
+        }
+
+        function clearAll() {
+            console.log('Clear all clicked');
+            medications = [];
+            notifications = [];
+            updateMedicationDisplay();
+            updateNotificationDisplay();
+            showStatus('Cleared all medications and notifications');
+        }
+
+        function updateMedicationDisplay() {
+            const container = document.getElementById('medications-container');
+            
+            if (medications.length === 0) {
+                container.innerHTML = '<p style="color: #6b7280;">No medications added yet</p>';
+                return;
+            }
+            
+            container.innerHTML = medications.map(med => `
+                <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin: 8px 0;">
+                    <strong>${med.name}</strong> - ${med.dosage}
+                    <br><small style="color: #6b7280;">Frequency: ${med.frequency}</small>
+                    <br><small style="color: #9ca3af;">Added: ${new Date(med.dateAdded).toLocaleString()}</small>
+                    <button class="btn btn-success" onclick="markAsTaken(${med.id})" style="margin-top: 8px; padding: 4px 8px; font-size: 12px;">
+                        Mark as Taken
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function updateNotificationDisplay() {
+            const container = document.getElementById('notifications-container');
+            
+            const activeNotifications = notifications.filter(n => !n.isDismissed);
+            
+            if (activeNotifications.length === 0) {
+                container.innerHTML = '<p style="color: #6b7280;">No notifications</p>';
+                return;
+            }
+            
+            container.innerHTML = activeNotifications.map(notification => `
+                <div class="notification-item">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="flex: 1;">
+                            <strong style="color: #dc2626;">${notification.title}</strong>
+                            ${!notification.isRead ? '<span style="background: #3b82f6; color: white; font-size: 12px; padding: 2px 6px; border-radius: 10px; margin-left: 8px;">NEW</span>' : ''}
+                            <p style="margin: 8px 0; color: #6b7280;">${notification.message}</p>
+                            <small style="color: #9ca3af;">${notification.timestamp.toLocaleTimeString()}</small>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 4px; margin-left: 16px;">
+                            <button class="btn btn-success" onclick="markNotificationAsTaken(${notification.id})" style="padding: 4px 8px; font-size: 12px;">✓ Taken</button>
+                            <button class="btn btn-warning" onclick="snoozeNotification(${notification.id})" style="padding: 4px 8px; font-size: 12px;">😴 Snooze</button>
+                            <button class="btn" onclick="dismissNotification(${notification.id})" style="padding: 4px 8px; font-size: 12px; background: #6b7280;">✕ Dismiss</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function markAsTaken(medicationId) {
+            const med = medications.find(m => m.id === medicationId);
+            if (med) {
+                med.lastTaken = new Date().toISOString();
+                updateMedicationDisplay();
+                showStatus('Marked ' + med.name + ' as taken');
+            }
+        }
+
+        function markNotificationAsTaken(notificationId) {
+            const notification = notifications.find(n => n.id === notificationId);
+            if (notification && notification.medicationId) {
+                markAsTaken(notification.medicationId);
+                dismissNotification(notificationId);
+            }
+        }
+
+        function snoozeNotification(notificationId) {
+            const notification = notifications.find(n => n.id === notificationId);
+            if (notification) {
+                notification.isDismissed = true;
+                notification.snoozedUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+                updateNotificationDisplay();
+                showStatus('Snoozed notification for 15 minutes');
+                
+                // Re-show after 15 minutes (for demo, we'll use 10 seconds)
+                setTimeout(() => {
+                    notification.isDismissed = false;
+                    notification.snoozedUntil = null;
+                    updateNotificationDisplay();
+                    showStatus('Notification snoozed period ended');
+                }, 10000); // 10 seconds for demo
+            }
+        }
+
+        function dismissNotification(notificationId) {
+            const notification = notifications.find(n => n.id === notificationId);
+            if (notification) {
+                notification.isDismissed = true;
+                updateNotificationDisplay();
+                showStatus('Notification dismissed');
+            }
+        }
+
+        // Request notification permission on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded successfully');
+            showStatus('Test page loaded successfully!');
+            
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        showStatus('Browser notifications enabled!');
+                    } else {
+                        showStatus('Browser notifications disabled', 'warning');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
